@@ -122,3 +122,41 @@ app.post('/api/biodata', async (req, res) => {
 });
 
 
+// PUT update biodata by ID
+app.put('/api/biodata/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nama, nim, kelas } = req.body;
+
+    if (!nama || !nim || !kelas) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Kolom nama, nim, dan kelas wajib diisi'
+        });
+    }
+
+    try {
+        const result = await pool.query(
+            'UPDATE biodata SET nama = $1, nim = $2, kelas = $3 WHERE id = $4 RETURNING *',
+            [nama, nim, kelas, id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: `Data dengan ID ${id} tidak ditemukan`
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Data biodata berhasil diperbarui',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error(`Sistem gagal memperbarui data dengan ID ${id}:`, error.message);
+        res.status(500).json({
+            status: 'error',
+            message: 'Internal Server Error'
+        });
+    }
+});
