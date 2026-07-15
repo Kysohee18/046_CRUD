@@ -160,3 +160,32 @@ app.put('/api/biodata/:id', async (req, res) => {
         });
     }
 });
+
+
+// DELETE biodata by ID
+app.delete('/api/biodata/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const result = await pool.query('DELETE FROM biodata WHERE id = $1 RETURNING *', [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: `Data dengan ID ${id} tidak ditemukan`
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: `Data dengan ID ${id} berhasil dihapus`,
+            deleted_data: result.rows[0]
+        });
+    } catch (error) {
+        console.error(`Sistem gagal menghapus data dengan ID ${id}:`, error.message);
+        res.status(500).json({
+            status: 'error',
+            message: 'Internal Server Error'
+        });
+    }
+});
