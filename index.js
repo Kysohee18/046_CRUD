@@ -91,3 +91,34 @@ app.get('/api/biodata/:id', async (req, res) => {
     }
 });
 
+
+// POST create a new biodata
+app.post('/api/biodata', async (req, res) => {
+    const { nama, nim, kelas } = req.body;
+    if (!nama || !nim || !kelas) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Kolom nama, nim, dan kelas wajib diisi'
+        });
+    }
+
+    try {
+        const result = await pool.query(
+            'INSERT INTO biodata (nama, nim, kelas) VALUES ($1, $2, $3) RETURNING *',
+            [nama, nim, kelas]
+        );
+        res.status(201).json({
+            status: 'success',
+            message: 'Data biodata berhasil ditambahkan',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Sistem gagal menambahkan data:', error.message);
+        res.status(500).json({
+            status: 'error',
+            message: 'Internal Server Error'
+        });
+    }
+});
+
+
